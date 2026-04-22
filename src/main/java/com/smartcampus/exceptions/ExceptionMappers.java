@@ -1,8 +1,8 @@
 package com.smartcampus.exceptions;
 
-import jakarta.ws.rs.ext.ExceptionMapper;
-import jakarta.ws.rs.ext.Provider;
-import jakarta.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
+import javax.ws.rs.core.Response;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

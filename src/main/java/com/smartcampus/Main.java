@@ -16,7 +16,7 @@ public class Main {
         Tomcat tomcat = new Tomcat();
         tomcat.setPort(PORT);
 
-        // Required for Tomcat 10.x — activate the default connector
+        // Required for Tomcat 9.x — activate the default connector
         tomcat.getConnector();
 
         // Create a minimal web-app context (no actual webapp directory needed)
