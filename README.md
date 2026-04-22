@@ -237,11 +237,11 @@ apply automatically to all current and future endpoints without any changes
 to resource classes, and can be enabled or disabled globally. This makes
 the codebase cleaner, easier to maintain, and less error-prone.
 
-**Video Demonstration
+##Video Demonstration
 A video demonstration of the API functionality via Postman testing is available via the BlackBoard submission link as required by the coursework specification.
 License
 
-**This project is submitted as part of the 5COSC022W Client-Server Architectures coursework at the University of Westminster. All rights reserved
+##This project is submitted as part of the 5COSC022W Client-Server Architectures coursework at the University of Westminster. All rights reserved
 
 
 ### UOW_ID=w2153254 , IIT_ID =20240076 
