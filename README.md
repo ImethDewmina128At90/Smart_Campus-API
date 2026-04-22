@@ -34,3 +34,18 @@ data through a clean, resource-based REST interface.
 ### Steps
 1. Clone the repository:
 ```bash
+   git clone https://github.com/YOUR_USERNAME/smart-campus-api.git
+   cd smart-campus-api
+```
+
+2. Build the project:
+```bash
+   mvn clean package
+```
+
+3. Run the server:
+```bash
+   java -jar target/smart-campus-api-1.0-SNAPSHOT.jar
+```
+
+4. The API will be available at:
