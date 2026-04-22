@@ -110,6 +110,30 @@ This reduces tight coupling between client and server and makes the API
 self-documenting at runtime.
 
 ---
+
+### Part 2 — Room Management
+
+**Q: When returning a list of rooms, what are the implications of returning
+only IDs versus returning full room objects?**
+
+Returning only IDs minimises bandwidth and is useful when the client only
+needs to check existence or build a list of references. However, it forces
+the client to make N additional requests to fetch details for each room,
+causing the N+1 problem. Returning full room objects increases payload size
+but reduces round trips and client-side processing. For a campus management
+system where rooms have relatively small payloads, returning full objects
+is the better default, with pagination added if the dataset grows large.
+
+**Q: Is the DELETE operation idempotent in your implementation?**
+
+DELETE is considered idempotent in REST because repeated calls produce no
+additional side effects beyond the first. In this implementation, the first
+DELETE removes the room and returns HTTP 200. Subsequent DELETE requests for
+the same room return HTTP 404 since the room no longer exists. While the
+response code differs between the first and subsequent calls, no unintended
+state change occurs — the system remains in the same final state regardless
+of how many times the DELETE is sent. This is consistent with the REST
+definition of idempotency, which concerns state changes, not response codes.
 ### Part 3 — Sensor Operations & Filtering
 
 **Q: Explain the technical consequences if a client sends data in a format
