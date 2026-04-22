@@ -1,17 +1,29 @@
 package com.smartcampus;
 
-import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
-import org.glassfish.jersey.jackson.JacksonFeature;
+import org.apache.catalina.Context;
+import org.apache.catalina.startup.Tomcat;
+import org.glassfish.jersey.servlet.ServletContainer;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 
-import java.net.URI;
+import java.io.File;
 
 public class Main {
 
-    public static final String BASE_URI = "http://0.0.0.0:8080/api/v1/";
+    public static final int PORT = 8080;
 
     public static void main(String[] args) throws Exception {
+        Tomcat tomcat = new Tomcat();
+        tomcat.setPort(PORT);
+
+        // Required for Tomcat 10.x — activate the default connector
+        tomcat.getConnector();
+
+        // Create a minimal web-app context (no actual webapp directory needed)
+        String docBase = new File(System.getProperty("java.io.tmpdir")).getAbsolutePath();
+        Context context = tomcat.addContext("/api/v1", docBase);
+
+        // Build the Jersey ResourceConfig
         ResourceConfig config = new ResourceConfig()
                 .packages(
                     "com.smartcampus.resources",
@@ -20,14 +32,19 @@ public class Main {
                 )
                 .register(JacksonFeature.class);
 
-        HttpServer server = GrizzlyHttpServerFactory.createHttpServer(
-                URI.create(BASE_URI), config);
+        // Register the Jersey ServletContainer with Tomcat
+        Tomcat.addServlet(context, "jersey-servlet",
+                new ServletContainer(config));
+        context.addServletMappingDecoded("/*", "jersey-servlet");
 
-        System.out.println("Smart Campus API started.");
-        System.out.println("Discovery endpoint: http://localhost:8080/api/v1");
+        tomcat.start();
+
+        System.out.println("Smart Campus API started on Apache Tomcat.");
+        System.out.println("Discovery endpoint: http://localhost:" + PORT + "/api/v1");
         System.out.println("Press ENTER to stop the server...");
         System.in.read();
 
-        server.shutdownNow();
+        tomcat.stop();
+        tomcat.destroy();
     }
 }

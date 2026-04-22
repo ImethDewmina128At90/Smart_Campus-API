@@ -17,11 +17,18 @@
     </properties>
 
     <dependencies>
-        <!-- Jersey JAX-RS implementation -->
+        <!-- Jersey Servlet container (for Tomcat) -->
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
-            <artifactId>jersey-container-grizzly2-http</artifactId>
+            <artifactId>jersey-container-servlet</artifactId>
             <version>${jersey.version}</version>
+        </dependency>
+
+        <!-- Embedded Apache Tomcat -->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <version>10.1.19</version>
         </dependency>
 
         <!-- Jersey core server -->
