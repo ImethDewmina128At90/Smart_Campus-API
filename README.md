@@ -1,6 +1,5 @@
-### UOW_ID=w2153254 , IIT_ID =20240076 
+### UOW_ID=w2153254 , IIT_ID=20240076 
 # Smart Campus Sensor & Room Management API
-
 
 ## Overview
 This project is a RESTful API built using JAX-RS (Jersey) as part of the
@@ -19,13 +18,27 @@ data through a clean, resource-based REST interface.
 
 ### Tech Stack
 - Java 11
-- JAX-RS 3.x (Jersey implementation)
-- Grizzly embedded HTTP server
+- JAX-RS 2.x (Jersey 2.41 implementation) — `javax.ws.rs.*` namespace
+- Embedded Apache Tomcat 9.0.83 (`tomcat-embed-core`)
 - Jackson for JSON serialization
 - Maven for build management
 - In-memory storage using `ConcurrentHashMap`
 
+> ⚠️ **Note**: This project uses **Jersey 2.41 + Tomcat 9.x** to maintain compatibility with the `javax.ws.rs.*` namespace as specified in the coursework. Do not upgrade to Jersey 3.x or Tomcat 10.x without updating all imports to `jakarta.*`.
+
 ---
+
+## How to Build and Run
+
+### Prerequisites
+- Java 11 or higher installed
+- Maven 3.6+ installed
+
+### Steps
+1. Clone the repository:
+```bash
+https://github.com/ImethDewmina128At90/Smart_Campus-API.git
+cd smart-campus-api
 
 ## How to Build and Run
 
@@ -223,6 +236,12 @@ updated individually. Filters centralise this behaviour in one place,
 apply automatically to all current and future endpoints without any changes
 to resource classes, and can be enabled or disabled globally. This makes
 the codebase cleaner, easier to maintain, and less error-prone.
+
+**Video Demonstration
+A video demonstration of the API functionality via Postman testing is available via the BlackBoard submission link as required by the coursework specification.
+License
+
+**This project is submitted as part of the 5COSC022W Client-Server Architectures coursework at the University of Westminster. All rights reserved
 
 
 ### UOW_ID=w2153254 , IIT_ID =20240076 
