@@ -48,7 +48,7 @@ data through a clean, resource-based REST interface.
    java -jar target/smart-campus-api-1.0-SNAPSHOT.jar
 ```
 
-4. The API will be available at:http://localhost:8080/api/v1
+4. The API will be available at:  http://localhost:8080/api/v1
 
    ---
 
