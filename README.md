@@ -110,5 +110,95 @@ This reduces tight coupling between client and server and makes the API
 self-documenting at runtime.
 
 ---
+### Part 3 — Sensor Operations & Filtering
+
+**Q: Explain the technical consequences if a client sends data in a format
+other than application/json to a POST endpoint annotated with
+@Consumes(MediaType.APPLICATION_JSON).**
+
+JAX-RS automatically handles the media type mismatch before the resource
+method is even invoked. If a client sends a request with Content-Type of
+text/plain or application/xml, the JAX-RS runtime returns an HTTP 415
+Unsupported Media Type response immediately. The server correctly signals
+that it cannot process the request body in the provided format. This
+behaviour is built into the framework and requires no additional code in
+the resource class.
+
+**Q: Why is the @QueryParam approach superior to embedding the filter in
+the URL path (e.g. /sensors/type/CO2) for filtering collections?**
+
+Query parameters are semantically designed for filtering, searching, and
+sorting collections. Using @QueryParam makes the filter optional — clients
+can call GET /sensors to get all sensors, or GET /sensors?type=CO2 to filter.
+A path-based approach like /sensors/type/CO2 implies that "type/CO2" is a
+specific resource identity, which is misleading. It also makes the filter
+mandatory and creates a proliferation of nested paths for multiple filter
+combinations. Query parameters are composable, optional, and clearly
+communicate search intent to both humans and tooling.
+
+---
+
+### Part 4 — Sub-Resources
+
+**Q: Discuss the architectural benefits of the Sub-Resource Locator pattern.**
+
+The Sub-Resource Locator pattern allows a parent resource to delegate
+handling of nested paths to a dedicated child resource class. In this
+implementation, SensorResource delegates all /sensors/{id}/readings requests
+to SensorReadingResource. This separation of concerns keeps each class
+focused on a single responsibility — SensorResource manages sensor lifecycle
+while SensorReadingResource manages historical data. In large APIs with many
+nested resources, defining every path in one massive controller becomes
+unmanageable and hard to test. Sub-resource locators allow teams to work on
+different resource classes independently, improving maintainability,
+readability, and scalability of the codebase.
+
+---
+
+### Part 5 — Error Handling & Logging
+
+**Q: Why is HTTP 422 more semantically accurate than 404 when a referenced
+resource is missing inside a valid JSON payload?**
+
+HTTP 404 Not Found means the requested URL endpoint does not exist on the
+server. HTTP 422 Unprocessable Entity means the server understood the
+request and the URL is valid, but it cannot process the instruction because
+the data relationships inside the payload are invalid. When a client POSTs
+a new sensor with a roomId that does not exist, the URL /api/v1/sensors is
+perfectly valid — the problem is the foreign key reference inside the body.
+Returning 404 would mislead the client into thinking the /sensors endpoint
+itself was not found. A 422 precisely communicates that the request was
+received and parsed, but the referenced resource dependency could not be
+resolved.
+
+**Q: From a cybersecurity standpoint, explain the risks of exposing internal
+Java stack traces to external API consumers.**
+
+Exposing stack traces to external clients is a serious security vulnerability.
+Stack traces reveal internal class names, method signatures, and line numbers,
+which allow an attacker to map the application's internal structure. They
+expose the names and versions of third-party libraries in use, enabling the
+attacker to look up known CVEs for those specific versions. They can reveal
+server file paths and package structures. They may expose SQL queries or
+connection strings in database-related exceptions. They also reveal
+application logic and control flow, which can be used to craft targeted
+injection, path traversal, or exploitation attacks. The GlobalExceptionMapper
+in this implementation ensures all unexpected errors return a safe, generic
+HTTP 500 message while logging full details server-side only, where they are
+accessible to developers but never exposed to clients.
+
+**Q: Why is it better to use JAX-RS filters for cross-cutting concerns like
+logging rather than manually inserting Logger.info() in every resource method?**
+
+Filters implement the cross-cutting concern principle — logging applies to
+every endpoint equally and has nothing to do with business logic. Manually
+inserting Logger.info() in every resource method violates the DRY (Don't
+Repeat Yourself) principle and clutters business logic with infrastructure
+concerns. If logging requirements change, every method would need to be
+updated individually. Filters centralise this behaviour in one place,
+apply automatically to all current and future endpoints without any changes
+to resource classes, and can be enabled or disabled globally. This makes
+the codebase cleaner, easier to maintain, and less error-prone.
+
 
 ### UOW_ID=w2153254 , IIT_ID =20240076 
