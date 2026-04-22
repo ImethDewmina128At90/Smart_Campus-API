@@ -239,7 +239,7 @@ the codebase cleaner, easier to maintain, and less error-prone.
 
 ### Video Demonstration
 A video demonstration of the API functionality via Postman testing is available via the BlackBoard submission link as required by the coursework specification.
-License
+
 
 #### This project is submitted as part of the 5COSC022W Client-Server Architectures coursework at the University of Westminster. All rights reserved
 
