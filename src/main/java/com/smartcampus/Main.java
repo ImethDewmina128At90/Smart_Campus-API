@@ -13,7 +13,11 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         ResourceConfig config = new ResourceConfig()
-                .packages("com.smartcampus.resources")
+                .packages(
+                    "com.smartcampus.resources",
+                    "com.smartcampus.exceptions",
+                    "com.smartcampus.filters"
+                )
                 .register(JacksonFeature.class);
 
         HttpServer server = GrizzlyHttpServerFactory.createHttpServer(
