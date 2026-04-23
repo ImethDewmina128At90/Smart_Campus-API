@@ -80,83 +80,142 @@ The project uses **Embedded Apache Tomcat 9.0.83** (`tomcat-embed-core`) as its 
 
 ---
 
-## How to Build and Run
+## 2. Build & Launch Instructions
 
 ### Prerequisites
-- Java 11 or higher installed
-- Maven 3.6+ installed
+- **Java 11** or higher installed (`java -version` to verify)
+- **Maven 3.6+** installed (`mvn -version` to verify)
 
-### Steps
-1. Clone the repository:
+> ⚠️ **Assessor Note**: No IDE is required. All commands below run natively in any terminal (Bash, PowerShell, Command Prompt). Do not use IDE-specific run configurations.
+
+### Step 1 — Clone the Repository
 ```bash
-https://github.com/ImethDewmina128At90/Smart_Campus-API.git
-cd smart-campus-api
-
-## How to Build and Run
-
-### Prerequisites
-- Java 11 or higher installed
-- Maven 3.6+ installed
-
-### Steps
-1. Clone the repository:
-```bash
-   https://github.com/ImethDewmina128At90/Smart_Campus-API.git
-   cd smart-campus-api
+git clone https://github.com/ImethDewmina128At90/Smart_Campus-API.git
+cd Smart_Campus-API
 ```
 
-2. Build the project:
+### Step 2 — Build the Project
 ```bash
-   mvn clean package
+mvn clean package
+```
+This compiles the source code, runs any tests, and produces a **fat JAR** (uber-JAR) using the Maven Shade Plugin. The output artifact is located at:
+```
+target/smart-campus-api-1.0-SNAPSHOT.jar
 ```
 
-3. Run the server:
+### Step 3 — Launch the Server
 ```bash
-   java -jar target/smart-campus-api-1.0-SNAPSHOT.jar
+java -jar target/smart-campus-api-1.0-SNAPSHOT.jar
 ```
 
-4. The API will be available at:  http://localhost:8080/api/v1
+On successful startup, you will see:
+```
+Smart Campus API started on Apache Tomcat.
+Discovery endpoint: http://localhost:8080/api/v1
+Press ENTER to stop the server...
+```
 
-   ---
-
-## Sample curl Commands
-
-### 1. Discovery Endpoint
+### Step 4 — Verify the API is Running
 ```bash
 curl -X GET http://localhost:8080/api/v1
 ```
 
-### 2. Create a Room
+Expected response (HTTP 200):
+```json
+{
+  "name": "Smart Campus Sensor & Room Management API",
+  "version": "v1",
+  "description": "RESTful API for managing campus rooms and IoT sensors",
+  "contact": "admin@smartcampus.ac.uk",
+  "resources": {
+    "rooms": "/api/v1/rooms",
+    "sensors": "/api/v1/sensors"
+  }
+}
+```
+
+### Step 5 — Stop the Server
+Press **ENTER** in the terminal where the server is running to gracefully shut down Tomcat.
+
+---
+
+## 3. Sample curl Commands
+
+Below are executable `curl` commands demonstrating successful interactions across all API sections. Run these **in order** — later commands depend on data created by earlier ones.
+
+### 3.1 Discovery Endpoint — `GET /api/v1`
 ```bash
+# Purpose: Verify the API is running and discover available resources (HATEOAS)
+# Expected: HTTP 200 with API metadata and resource links
+curl -X GET http://localhost:8080/api/v1
+```
+
+### 3.2 Create a Room — `POST /api/v1/rooms`
+```bash
+# Purpose: Create a new campus room
+# Expected: HTTP 201 Created with the room object
 curl -X POST http://localhost:8080/api/v1/rooms \
   -H "Content-Type: application/json" \
   -d '{"id":"LIB-301","name":"Library Quiet Study","capacity":50}'
 ```
 
-### 3. Get All Rooms
+### 3.3 Register a Sensor — `POST /api/v1/sensors`
 ```bash
-curl -X GET http://localhost:8080/api/v1/rooms
-```
-
-### 4. Register a Sensor
-```bash
+# Purpose: Register a CO2 sensor assigned to room LIB-301
+# Expected: HTTP 201 Created with the sensor object
+# Note: Room LIB-301 must exist first, otherwise returns HTTP 422
 curl -X POST http://localhost:8080/api/v1/sensors \
   -H "Content-Type: application/json" \
-  -d '{"id":"TEMP-001","type":"Temperature","status":"ACTIVE","currentValue":22.5,"roomId":"LIB-301"}'
+  -d '{"id":"CO2-001","type":"CO2","status":"ACTIVE","currentValue":420.0,"roomId":"LIB-301"}'
 ```
 
-### 5. Get Sensors by Type
+### 3.4 Get Sensors Filtered by Type — `GET /api/v1/sensors?type=CO2`
 ```bash
-curl -X GET "http://localhost:8080/api/v1/sensors?type=Temperature"
+# Purpose: Retrieve only CO2 sensors using @QueryParam filtering
+# Expected: HTTP 200 with an array containing CO2-001
+curl -X GET "http://localhost:8080/api/v1/sensors?type=CO2"
+```
+
+### 3.5 Append a Sensor Reading — `POST /api/v1/sensors/{id}/readings`
+```bash
+# Purpose: Record a new CO2 measurement for sensor CO2-001
+# Expected: HTTP 201 Created with the reading object
+# Side effect: The sensor's currentValue is updated to 455.2
+curl -X POST http://localhost:8080/api/v1/sensors/CO2-001/readings \
+  -H "Content-Type: application/json" \
+  -d '{"value":455.2}'
+```
+
+### 3.6 Delete a Room with Sensors (409 Conflict) — `DELETE /api/v1/rooms/{id}`
+```bash
+# Purpose: Attempt to delete a room that still has sensors assigned
+# Expected: HTTP 409 Conflict — business rule prevents orphaned sensors
+curl -X DELETE http://localhost:8080/api/v1/rooms/LIB-301
+```
+
+Expected error response:
+```json
+{
+  "error": "Conflict",
+  "message": "Room 'LIB-301' cannot be deleted. It still has 1 sensor(s) assigned. Please remove all sensors before deleting the room."
+}
+```
+
+### 3.7 Get All Rooms — `GET /api/v1/rooms`
+```bash
+# Purpose: Retrieve all rooms currently stored in the system
+# Expected: HTTP 200 with an array of room objects
+curl -X GET http://localhost:8080/api/v1/rooms
 ```
 
 ---
 
-## Report — Question Answers
+## 4. Conceptual Report
 
 ### Part 1 — Service Architecture & Setup
 
 **Q: Explain the default lifecycle of a JAX-RS Resource class.**
+
 By default, JAX-RS creates a new instance of each Resource class for every
 incoming HTTP request (per-request scope). This means instance variables are
 reset after each request and cannot be used to persist data between calls.
@@ -167,6 +226,7 @@ must be used instead of plain HashMap to prevent race conditions when multiple
 requests read and write simultaneously.
 
 **Q: Why is HATEOAS considered a hallmark of advanced RESTful design?**
+
 HATEOAS (Hypermedia As The Engine Of Application State) allows clients to
 navigate the entire API dynamically by following links embedded in responses,
 rather than relying on hard-coded URLs or external documentation. If resource
@@ -199,6 +259,9 @@ response code differs between the first and subsequent calls, no unintended
 state change occurs — the system remains in the same final state regardless
 of how many times the DELETE is sent. This is consistent with the REST
 definition of idempotency, which concerns state changes, not response codes.
+
+---
+
 ### Part 3 — Sensor Operations & Filtering
 
 **Q: Explain the technical consequences if a client sends data in a format
@@ -289,11 +352,13 @@ apply automatically to all current and future endpoints without any changes
 to resource classes, and can be enabled or disabled globally. This makes
 the codebase cleaner, easier to maintain, and less error-prone.
 
+---
+
 ### Video Demonstration
 A video demonstration of the API functionality via Postman testing is available via the BlackBoard submission link as required by the coursework specification.
 
+---
 
 #### This project is submitted as part of the 5COSC022W Client-Server Architectures coursework at the University of Westminster. All rights reserved
-
 
 ### UOW_ID=w2153254 , IIT_ID =20240076 
