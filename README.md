@@ -28,6 +28,58 @@ data through a clean, resource-based REST interface.
 
 ---
 
+## 1. API Design Overview
+
+### High-Level Architecture
+
+This RESTful service follows a layered architecture built on top of an **embedded Apache Tomcat 9.0.83** server. The application bootstraps a Tomcat instance programmatically in `Main.java`, registers a Jersey `ServletContainer` with the server, and delegates all HTTP request handling to JAX-RS resource classes. No external application server installation or WAR deployment is required — the entire service runs as a standalone executable JAR.
+
+### Base Path
+
+All API endpoints are served under the base path:
+
+```
+/api/v1
+```
+
+This versioned base path is configured as the Tomcat context path in `Main.java`, ensuring all resource routes are mounted beneath it. The discovery endpoint at `GET /api/v1` provides HATEOAS-style links to all available resources.
+
+### Core Resources
+
+| Resource | Endpoint | Description |
+|----------|----------|-------------|
+| **Rooms** | `/api/v1/rooms` | CRUD operations for physical campus rooms (lecture halls, labs, libraries) |
+| **Sensors** | `/api/v1/sensors` | CRUD operations for IoT devices (CO2, Temperature, Occupancy sensors) with query-based filtering by type |
+| **Sensor Readings** | `/api/v1/sensors/{id}/readings` | Sub-resource for managing historical measurement logs per sensor (uses the Sub-Resource Locator pattern) |
+| **Discovery** | `/api/v1` | Entry-point endpoint returning API metadata and HATEOAS navigation links |
+
+### Data Storage Mechanism (In-Memory)
+
+This project **does not use any external database**. All data is stored entirely in-memory using Java's built-in concurrent collections, managed by the `DataStore` class (`com.smartcampus.store.DataStore`):
+
+| Data | Collection Type | Structure |
+|------|----------------|-----------|
+| Rooms | `ConcurrentHashMap<String, Room>` | Maps room ID → Room object |
+| Sensors | `ConcurrentHashMap<String, Sensor>` | Maps sensor ID → Sensor object |
+| Sensor Readings | `ConcurrentHashMap<String, List<SensorReading>>` | Maps sensor ID → `ArrayList` of SensorReading objects |
+
+- **`ConcurrentHashMap`** is used instead of a plain `HashMap` to ensure thread-safe read/write access when multiple HTTP requests are processed simultaneously by Tomcat's thread pool.
+- **`ArrayList`** is used within the readings map to store an ordered, chronological list of sensor measurements per sensor.
+- All data is held in **static fields**, making it accessible across the per-request lifecycle of JAX-RS resource instances without requiring dependency injection.
+- Since storage is in-memory, **all data is lost when the server stops** — this is by design and satisfies the coursework constraint of no external database dependencies.
+
+### Embedded Server — Apache Tomcat 9.0.83
+
+The project uses **Embedded Apache Tomcat 9.0.83** (`tomcat-embed-core`) as its lightweight servlet container. This satisfies the coursework requirement for a lightweight container in the following ways:
+
+1. **No external server installation** — Tomcat is embedded as a Maven dependency (`org.apache.tomcat.embed:tomcat-embed-core:9.0.83`). The application starts a Tomcat instance programmatically in `Main.java` and runs as a self-contained JAR.
+2. **Minimal footprint** — Only the `tomcat-embed-core` module is included (no JSP compiler, no WebSocket, no clustering), keeping the deployment artefact small and focused.
+3. **Programmatic configuration** — The server port, context path (`/api/v1`), and servlet mappings are all configured in code, requiring no XML deployment descriptors (`web.xml`, `server.xml`).
+4. **Servlet compatibility** — Tomcat 9.x implements the Servlet 4.0 specification under the `javax.servlet.*` namespace, which is fully compatible with Jersey 2.41 and the `javax.ws.rs.*` JAX-RS API used throughout the project.
+5. **Production-grade threading** — Tomcat's NIO connector provides a robust thread pool for handling concurrent requests, making the service performant even under load.
+
+---
+
 ## How to Build and Run
 
 ### Prerequisites
