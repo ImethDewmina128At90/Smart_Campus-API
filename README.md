@@ -139,6 +139,60 @@ Press **ENTER** in the terminal where the server is running to gracefully shut d
 
 ---
 
+### Running with Apache NetBeans IDE
+
+If you prefer to use **Apache NetBeans** instead of the command line, follow the steps below.
+
+#### Prerequisites
+- **Apache NetBeans 12.x or later** (download from [https://netbeans.apache.org](https://netbeans.apache.org))
+- **JDK 11** or higher configured in NetBeans (verify under *Tools → Java Platforms*)
+- **Maven** bundled with NetBeans is sufficient — no separate Maven installation is required
+
+#### Step 1 — Open the Project
+1. Launch **NetBeans**.
+2. Go to **File → Open Project…** (or press `Ctrl+Shift+O`).
+3. Navigate to the cloned `Smart_Campus-API` folder and select it.
+4. NetBeans will automatically detect the `pom.xml` and recognise it as a **Maven** project. Click **Open Project**.
+
+> 💡 **Tip**: If NetBeans prompts you to "Trust this project", click **Trust and Open**.
+
+#### Step 2 — Resolve Dependencies
+1. In the **Projects** panel (left side), right-click on the project name **smart-campus-api**.
+2. Select **Build with Dependencies** (or press `Shift+F11`).
+3. NetBeans will download all Maven dependencies (Jersey, Tomcat, Jackson, etc.) from Maven Central and compile the project.
+4. Wait for the **BUILD SUCCESS** message in the Output window.
+
+#### Step 3 — Set the Main Class
+1. Right-click the project → **Properties**.
+2. In the left panel, select **Run**.
+3. Set the **Main Class** to:
+   ```
+   com.smartcampus.Main
+   ```
+4. Click **OK**.
+
+> ⚠️ **Note**: This step is usually auto-detected from the `pom.xml` shade plugin configuration. If `com.smartcampus.Main` already appears, no changes are needed.
+
+#### Step 4 — Run the Project
+1. Click the **Run Project** button (green ▶ icon in the toolbar) or press `F6`.
+2. The **Output** window at the bottom will display:
+   ```
+   Smart Campus API started on Apache Tomcat.
+   Discovery endpoint: http://localhost:8080/api/v1
+   Press ENTER to stop the server...
+   ```
+3. The API is now running and accessible at `http://localhost:8080/api/v1`.
+
+#### Step 5 — Test the API
+You can test endpoints using:
+- **A web browser** — navigate to `http://localhost:8080/api/v1` to see the discovery JSON.
+- **Postman** or **curl** — use the sample commands from [Section 3](#3-sample-curl-commands).
+
+#### Step 6 — Stop the Server
+- Click the **Stop** button (red ■ icon) in the NetBeans Output window to terminate the server process.
+
+---
+
 ## 3. Sample curl Commands
 
 Below are executable `curl` commands demonstrating successful interactions across all API sections. Run these **in order** — later commands depend on data created by earlier ones.
